@@ -45,7 +45,7 @@ os.remove(disk)
 print("Log: "+log)
 
 #write log file
-logfile = open(os.path.dirname(os.path.realpath(__file__))+"/"+(filename.replace('.bak','.log')),"w")
+logfile = open(disk.replace('.bak','.log'),"w")
 logfile.write(log)
 logfile.close()
 
