@@ -46,8 +46,8 @@ print("Log: "+log)
 
 #write log file
 logfile = open(os.path.dirname(os.path.realpath(__file__))+"/"+(filename.replace('.bak','.log')),"w")
-file.write(log)
-file.close()
+logfile.write(log)
+logfile.close()
 
 #send mail
 msg = 'Backup da base '+ config.dbname+' no servidor '+ config.dbserver+' foi realizado.'
