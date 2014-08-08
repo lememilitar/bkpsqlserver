@@ -28,18 +28,18 @@ file.write("DBCC Shrinkfile('Teste_Log',1)")
 file.close()
 #run bat to create a backup
 print('Starting backup')
-log+="Starting backup "+disk+"- "
+log+="Starting backup "+disk+"\n"
 
 output = subprocess.call('sqlcmd -S '+ config.dbserver +' -U '+ config.u +' -P '+ config.p + ' -i "'+os.path.dirname(os.path.realpath(__file__))+'/sql/dbbkp.sql"')
-log += "Backup file "+disk+" ended- "
+log += "Backup file "+disk+" ended\n"
 
 #compact the file
 print('Compact the file '+disk)
-log+="Compact the file "+disk+"- "
+log+="Compact the file "+disk+"\n"
 output += subprocess.call(config.rarpath+' a '+disk.replace('.bak','.rar')+' '+disk)
 #delete the file
 print('Deleting '+disk)
-log+="Deleting "+disk+"- "
+log+="Deleting "+disk+"\n"
 os.remove(disk)
 
 print("Log: "+log)
