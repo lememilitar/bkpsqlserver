@@ -1,0 +1,14 @@
+empresa = 'nome da empresa'
+dbserver = 'server_name'
+u = 'Mssql_user'
+p = 'Mssql_pass'
+dbname = 'dbname'
+bkpbasedir = 'path/to/your/bkp/will/save/'
+mailuser = 'gmail_user'
+mailpass = 'gmail_pass'
+rarpath = "winrar_path"
+smtpserver = 'smtp.server'
+smtpport = 25
+fromaddr = 'mail_form'
+toaddrs  = 'mail_to'
+subject = 'Subject '+ config.empresa
