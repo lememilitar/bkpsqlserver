@@ -7,6 +7,12 @@ import datetime
 import os
 import subprocess
 from email.message import Message
+import zipfile
+try:
+    import zlib
+    compression = zipfile.ZIP_DEFLATED
+except:
+    compression = zipfile.ZIP_STORED
 
 
 now = datetime.datetime.now()
@@ -36,7 +42,15 @@ log += "Backup file "+disk+" ended\n"
 #compact the file
 print('Compact the file '+disk)
 log+="Compact the file "+disk+"\n"
-output += subprocess.call(config.rarpath+' a '+disk.replace('.bak','.rar')+' '+disk)
+#output += subprocess.call(config.rarpath+' a '+disk.replace('.bak','.rar')+' '+disk)
+zf = zipfile.ZipFile(disk.replace('.bak','.zip'), mode='w')
+try:
+    zf.write(disk, compress_type=compression)
+finally:
+    print('closing compress')
+    log+="Compact "+disk+" ended\n"
+    zf.close()
+
 #delete the file
 print('Deleting '+disk)
 log+="Deleting "+disk+"\n"
