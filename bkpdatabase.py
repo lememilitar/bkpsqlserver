@@ -11,12 +11,14 @@ from email.message import Message
 
 now = datetime.datetime.now()
 directory = config.bkpbasedir+str(now.year)+'/'+str(now.month)+'/'+str(now.day)+'/'
-file = config.dbname+'-'+str(now.year)+str(now.month)+str(now.day)+'.bak'
-disk = directory+file
+filename = config.dbname+'-'+str(now.year)+str(now.month)+str(now.day)+'.bak'
+disk = directory+filename
+log = ''
 
 #create bkp folders
 if not os.path.exists(directory):
     os.makedirs(directory)
+    log+='create folder '+directory+"\n"
 
 #create a file to run bkp
 file = open(os.path.dirname(os.path.realpath(__file__))+"/sql/dbbkp.sql","w")
@@ -25,20 +27,29 @@ file.write("BACKUP LOG "+ config.dbname+" WITH truncate_only\n")
 file.write("DBCC Shrinkfile('Teste_Log',1)")
 file.close()
 #run bat to create a backup
-print('Realizando o backup')
+print('Starting backup')
+log+="Starting backup "+filename+" \n"
 
 output = subprocess.call('sqlcmd -S '+ config.dbserver +' -U '+ config.u +' -P '+ config.p + ' -i "'+os.path.dirname(os.path.realpath(__file__))+'/sql/dbbkp.sql"')
+log = "Backup file "+filename+" ended"
 
 #compact the file
-print('Compactando o arquivo')
+print('Compact the file '+disk)
+log+="Compact the file "+disk+"\n"
 output += subprocess.call(config.rarpath+' a '+disk.replace('.bak','.rar')+' '+disk)
 #delete the file
-print('Deletando '+disk)
+print('Deleting '+disk)
+log+="Deleting "+disk+"\n"
 os.remove(disk)
+
+#write log file
+logfile = open(os.path.dirname(os.path.realpath(__file__))+"/"+(filename.replace('.bak','.log')),"w")
+file.write(log)
+file.close()
 
 #send mail
 msg = 'Backup da base '+ config.dbname+' no servidor '+ config.dbserver+' foi realizado.'
-msg += 'Saida do programa: '+str(output)
+msg += 'Saida do programa: '+str(log)
 
 try:
   msg1 = Message()
