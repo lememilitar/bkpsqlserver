@@ -18,7 +18,7 @@ log = ''
 #create bkp folders
 if not os.path.exists(directory):
     os.makedirs(directory)
-    log+='create folder '+directory+"\n"
+    log+="create folder "+directory+"\n"
 
 #create a file to run bkp
 file = open(os.path.dirname(os.path.realpath(__file__))+"/sql/dbbkp.sql","w")
@@ -28,10 +28,10 @@ file.write("DBCC Shrinkfile('Teste_Log',1)")
 file.close()
 #run bat to create a backup
 print('Starting backup')
-log+="Starting backup "+disk+" \n"
+log+="Starting backup "+disk+"\n"
 
 output = subprocess.call('sqlcmd -S '+ config.dbserver +' -U '+ config.u +' -P '+ config.p + ' -i "'+os.path.dirname(os.path.realpath(__file__))+'/sql/dbbkp.sql"')
-log = "Backup file "+disk+" ended \n"
+log += "Backup file "+disk+" ended\n"
 
 #compact the file
 print('Compact the file '+disk)
