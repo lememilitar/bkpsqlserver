@@ -28,6 +28,7 @@ if not os.path.exists(directory):
 
 #create a file to run bkp
 file = open(os.path.dirname(os.path.realpath(__file__))+"/sql/dbbkp.sql","w")
+file.write("use "+config.dbname+"\n")
 file.write("BACKUP DATABASE "+ config.dbname+" TO DISK='"+disk+"' \n")
 file.write("BACKUP LOG "+ config.dbname+" WITH truncate_only\n")
 file.write("DBCC Shrinkfile('Teste_Log',1)")
@@ -44,12 +45,16 @@ print('Compact the file '+disk)
 log+="Compact the file "+disk+"\n"
 #output += subprocess.call(config.rarpath+' a '+disk.replace('.bak','.rar')+' '+disk)
 zf = zipfile.ZipFile(disk.replace('.bak','.zip'), mode='w')
-try:
-    zf.write(disk, compress_type=compression)
-finally:
-    print('closing compress')
-    log+="Compact "+disk+" ended\n"
-    zf.close()
+if os.path.isfile(disk):
+    try:
+        zf.write(disk, compress_type=compression)
+    finally:
+        print('closing compress')
+        log+="Compact "+disk+" ended\n"
+        zf.close()
+else:
+    print('File not exists')
+    log+="File "+disk+" not exists\n"
 
 #delete the file
 print('Deleting '+disk)
