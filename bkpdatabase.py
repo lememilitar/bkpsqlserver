@@ -52,14 +52,14 @@ if os.path.isfile(disk):
         print('closing compress')
         log+="Compact "+disk+" ended\n"
         zf.close()
+
+    #delete the file
+    print('Deleting '+disk)
+    log+="Deleting "+disk+"\n"
+    os.remove(disk)
 else:
     print('File not exists')
     log+="File "+disk+" not exists\n"
-
-#delete the file
-print('Deleting '+disk)
-log+="Deleting "+disk+"\n"
-os.remove(disk)
 
 print("Log: "+log)
 
