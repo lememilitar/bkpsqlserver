@@ -18,8 +18,11 @@ disk = ''
 
 def backup_mmsql():
   now = datetime.datetime.now()
-  for database,config in config.databases():
-    directory = config.bkpbasedir+str(now.year)+'/'+str(now.month)+'/'+str(now.day)+'/'
+  for database,dataconfig in config.databases.items():
+    global log
+    global directory
+    global disk
+    directory = dataconfig['bkpbasedir']+str(now.year)+'/'+str(now.month)+'/'+str(now.day)+'/'
     filename = database+'-'+str(now.year)+str(now.month)+str(now.day)+'.bak'
     disk = directory+filename
     create_bkp_folders()
@@ -29,15 +32,18 @@ def backup_mmsql():
     write_log_file()
     msg = 'Backup da base '+ database +' no servidor '+ config.dbserver+' foi realizado.'
     msg += 'Saida do programa: '+str(log)
-    send_mail(config.subject,msg)
+    send_mail(dataconfig['subject'],msg)
 
 
 def create_bkp_folders():
+  global directory
+  global log
   if not os.path.exists(directory):
       os.makedirs(directory)
       log+="create folder "+directory+"- "
 
 def create_file_to_run_bkp(dbname):
+  global disk
   file = open(os.path.dirname(os.path.realpath(__file__))+"/sql/dbbkp.sql","w")
   file.write("use "+dbname+"\n")
   file.write("BACKUP DATABASE "+dbname+" TO DISK='"+disk+"' \n")
@@ -46,6 +52,8 @@ def create_file_to_run_bkp(dbname):
   file.close()
 
 def run_command():
+  global disk
+  global log
   print('Starting backup')
   log+="Starting backup "+disk+"\n"
 
@@ -53,6 +61,8 @@ def run_command():
   log += "Backup file "+disk+" ended\n"
 
 def compact_file():
+  global disk
+  global log
   print('Compact the file '+disk)
   log+="Compact the file "+disk+"\n"
   zf = zipfile.ZipFile(disk.replace('.bak','.zip'), mode='w')
@@ -75,6 +85,8 @@ def compact_file():
   print("Log: "+log)
 
 def write_log_file():
+  global disk
+  global log
   logfile = open(disk.replace('.bak','.log'),"w")
   logfile.write(log)
   logfile.close()
