@@ -1,14 +1,17 @@
-empresa = 'nome da empresa'
+databases = {'dbname'}
+
+databases['dbname'] = {
+  'empresa':'empresa_nome',
+  'bkpbasedir':'d:/backup-base-dados/dbname/',
+  'subject':'Backup Base de dados dbname'
+}
+
 dbserver = 'server_name'
 u = 'Mssql_user'
 p = 'Mssql_pass'
-dbname = 'dbname'
-bkpbasedir = 'path/to/your/bkp/will/save/'
 mailuser = 'gmail_user'
 mailpass = 'gmail_pass'
-rarpath = "winrar_path"
 smtpserver = 'smtp.server'
 smtpport = 25
 fromaddr = 'mail_form'
 toaddrs  = 'mail_to'
-subject = 'Subject '+ config.empresa
