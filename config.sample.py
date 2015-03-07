@@ -1,4 +1,4 @@
-databases = {'dbname'}
+databases = {'dbname':{}}
 
 databases['dbname'] = {
   'empresa':'empresa_nome',
