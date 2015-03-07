@@ -18,10 +18,11 @@ disk = ''
 
 def backup_mmsql():
   now = datetime.datetime.now()
+  global log
+  global directory
+  global disk
   for database,dataconfig in config.databases.items():
-    global log
-    global directory
-    global disk
+    log = ''
     directory = dataconfig['bkpbasedir']+str(now.year)+'/'+str(now.month)+'/'+str(now.day)+'/'
     filename = database+'-'+str(now.year)+str(now.month)+str(now.day)+'.bak'
     disk = directory+filename
