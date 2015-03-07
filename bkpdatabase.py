@@ -1,7 +1,5 @@
 import config
 
-__author__ = 'George Moura'
-
 import smtplib
 import datetime
 import os
@@ -14,79 +12,93 @@ try:
 except:
     compression = zipfile.ZIP_STORED
 
-
-now = datetime.datetime.now()
-directory = config.bkpbasedir+str(now.year)+'/'+str(now.month)+'/'+str(now.day)+'/'
-filename = config.dbname+'-'+str(now.year)+str(now.month)+str(now.day)+'.bak'
-disk = directory+filename
+directory = ''
 log = ''
+disk = ''
 
-#create bkp folders
-if not os.path.exists(directory):
-    os.makedirs(directory)
-    log+="create folder "+directory+"- "
+def backup_mmsql():
+  now = datetime.datetime.now()
+  for database,config in config.databases():
+    directory = config.bkpbasedir+str(now.year)+'/'+str(now.month)+'/'+str(now.day)+'/'
+    filename = database+'-'+str(now.year)+str(now.month)+str(now.day)+'.bak'
+    disk = directory+filename
+    create_bkp_folders()
+    create_file_to_run_bkp(database)
+    run_command()
+    compact_file()
+    write_log_file()
+    msg = 'Backup da base '+ database +' no servidor '+ config.dbserver+' foi realizado.'
+    msg += 'Saida do programa: '+str(log)
+    send_mail(config.subject,msg)
 
-#create a file to run bkp
-file = open(os.path.dirname(os.path.realpath(__file__))+"/sql/dbbkp.sql","w")
-file.write("use "+config.dbname+"\n")
-file.write("BACKUP DATABASE "+ config.dbname+" TO DISK='"+disk+"' \n")
-file.write("BACKUP LOG "+ config.dbname+" WITH truncate_only\n")
-file.write("DBCC Shrinkfile('Teste_Log',1)")
-file.close()
-#run bat to create a backup
-print('Starting backup')
-log+="Starting backup "+disk+"\n"
 
-output = subprocess.call('sqlcmd -S '+ config.dbserver +' -U '+ config.u +' -P '+ config.p + ' -i "'+os.path.dirname(os.path.realpath(__file__))+'/sql/dbbkp.sql"')
-log += "Backup file "+disk+" ended\n"
+def create_bkp_folders():
+  if not os.path.exists(directory):
+      os.makedirs(directory)
+      log+="create folder "+directory+"- "
 
-#compact the file
-print('Compact the file '+disk)
-log+="Compact the file "+disk+"\n"
-#output += subprocess.call(config.rarpath+' a '+disk.replace('.bak','.rar')+' '+disk)
-zf = zipfile.ZipFile(disk.replace('.bak','.zip'), mode='w')
-if os.path.isfile(disk):
-    try:
-        zf.write(disk, compress_type=compression)
-    finally:
-        print('closing compress')
-        log+="Compact "+disk+" ended\n"
-        zf.close()
+def create_file_to_run_bkp(dbname):
+  file = open(os.path.dirname(os.path.realpath(__file__))+"/sql/dbbkp.sql","w")
+  file.write("use "+dbname+"\n")
+  file.write("BACKUP DATABASE "+dbname+" TO DISK='"+disk+"' \n")
+  file.write("BACKUP LOG "+dbname+" WITH truncate_only\n")
+  file.write("DBCC Shrinkfile('Teste_Log',1)")
+  file.close()
 
-    #delete the file
-    print('Deleting '+disk)
-    log+="Deleting "+disk+"\n"
-    os.remove(disk)
-else:
-    print('File not exists')
-    log+="File "+disk+" not exists\n"
+def run_command():
+  print('Starting backup')
+  log+="Starting backup "+disk+"\n"
 
-print("Log: "+log)
+  output = subprocess.call('sqlcmd -S '+ config.dbserver +' -U '+ config.u +' -P '+ config.p + ' -i "'+os.path.dirname(os.path.realpath(__file__))+'/sql/dbbkp.sql"')
+  log += "Backup file "+disk+" ended\n"
 
-#write log file
-logfile = open(disk.replace('.bak','.log'),"w")
-logfile.write(log)
-logfile.close()
+def compact_file():
+  print('Compact the file '+disk)
+  log+="Compact the file "+disk+"\n"
+  zf = zipfile.ZipFile(disk.replace('.bak','.zip'), mode='w')
+  if os.path.isfile(disk):
+      try:
+          zf.write(disk, compress_type=compression)
+      finally:
+          print('closing compress')
+          log+="Compact "+disk+" ended\n"
+          zf.close()
 
-#send mail
-msg = 'Backup da base '+ config.dbname+' no servidor '+ config.dbserver+' foi realizado.'
-msg += 'Saida do programa: '+str(log)
+      #delete the file
+      print('Deleting '+disk)
+      log+="Deleting "+disk+"\n"
+      os.remove(disk)
+  else:
+      print('File not exists')
+      log+="File "+disk+" not exists\n"
 
-try:
-  msg1 = Message()
-  msg1['Subject'] = config.subject
-  msg1['From'] = config.fromaddr
-  msg1['To'] = config.toaddrs
-  msg1.set_payload(msg)
-  print('Enviando Mensagem...\n')
-  print(msg1)
-  serv=smtplib.SMTP(config.smtpserver,config.smtpport)
-  #serv.ehlo()
-  #serv.starttls()
-  serv.login(config.mailuser, config.mailpass)
-  serv.sendmail(msg1['From'], msg1['To'], msg1.as_string())
-  serv.quit()
-except Exception as e:
-  print("Erro " , e)
-else:
-  print("Enviado!")
+  print("Log: "+log)
+
+def write_log_file():
+  logfile = open(disk.replace('.bak','.log'),"w")
+  logfile.write(log)
+  logfile.close()
+
+def send_mail(subject,msg):
+  try:
+    msg1 = Message()
+    msg1['Subject'] = subject
+    msg1['From'] = config.fromaddr
+    msg1['To'] = config.toaddrs
+    msg1.set_payload(msg)
+    print('Enviando Mensagem...\n')
+    print(msg1)
+    serv=smtplib.SMTP(config.smtpserver,config.smtpport)
+    #serv.ehlo()
+    #serv.starttls()
+    serv.login(config.mailuser, config.mailpass)
+    serv.sendmail(msg1['From'], msg1['To'], msg1.as_string())
+    serv.quit()
+  except Exception as e:
+    print("Erro " , e)
+  else:
+    print("Enviado!")
+
+if __name__ == '__main__':
+  backup_mmsql()
+  print(log)
