@@ -1,7 +1,7 @@
 import config
 
 import smtplib
-import datetime
+from datetime import datetime
 import os
 import subprocess
 from email.message import Message
@@ -17,7 +17,7 @@ log = ''
 disk = ''
 
 def backup_mmsql():
-  now = datetime.datetime.now()
+  now = datetime.now()
   global log
   global directory
   global disk
@@ -41,7 +41,7 @@ def create_bkp_folders():
   global log
   if not os.path.exists(directory):
       os.makedirs(directory)
-      log+="create folder "+directory+"- "
+      log+="create folder "+directory+"- "+get_hour_now()+"\n"
 
 def create_file_to_run_bkp(dbname):
   global disk
@@ -49,39 +49,39 @@ def create_file_to_run_bkp(dbname):
   file.write("use "+dbname+"\n")
   file.write("BACKUP DATABASE "+dbname+" TO DISK='"+disk+"' \n")
   file.write("BACKUP LOG "+dbname+" WITH truncate_only\n")
-  file.write("DBCC Shrinkfile('Teste_Log',1)")
+  #file.write("DBCC Shrinkfile('Teste_Log',1)")
   file.close()
 
 def run_command():
   global disk
   global log
-  print('Starting backup')
-  log+="Starting backup "+disk+"\n"
+  print('Start backup')
+  log+="Start backup: "+disk+" - "+get_hour_now()+"\n"
 
   output = subprocess.call('sqlcmd -S '+ config.dbserver +' -U '+ config.u +' -P '+ config.p + ' -i "'+os.path.dirname(os.path.realpath(__file__))+'/sql/dbbkp.sql"')
-  log += "Backup file "+disk+" ended\n"
+  log += "End backup: "+disk+" - "+get_hour_now()+"\n"
 
 def compact_file():
   global disk
   global log
-  print('Compact the file '+disk)
-  log+="Compact the file "+disk+"\n"
+  print('Start Compact file: '+disk)
+  log+="Start Compact file: "+disk+" - "+get_hour_now()+"\n"
   zf = zipfile.ZipFile(disk.replace('.bak','.zip'), mode='w')
   if os.path.isfile(disk):
       try:
           zf.write(disk, compress_type=compression)
       finally:
           print('closing compress')
-          log+="Compact "+disk+" ended\n"
+          log+="Ended Compact file: "+disk+" - "+get_hour_now()+"\n"
           zf.close()
 
       #delete the file
       print('Deleting '+disk)
-      log+="Deleting "+disk+"\n"
+      log+="Deleting "+disk+" - "+get_hour_now()+"\n"
       os.remove(disk)
   else:
       print('File not exists')
-      log+="File "+disk+" not exists\n"
+      log+="File "+disk+" not exists - "+get_hour_now()+"\n"
 
   print("Log: "+log)
 
@@ -115,3 +115,7 @@ def send_mail(subject,msg):
 if __name__ == '__main__':
   backup_mmsql()
   print(log)
+
+
+def get_hour_now():
+  return "hour["+str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+"]"
