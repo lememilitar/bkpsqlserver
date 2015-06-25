@@ -112,10 +112,9 @@ def send_mail(subject,msg):
   else:
     print("Enviado!")
 
+def get_hour_now():
+  return "hour["+str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+"]"
+
 if __name__ == '__main__':
   backup_mmsql()
   print(log)
-
-
-def get_hour_now():
-  return "hour["+str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))+"]"
